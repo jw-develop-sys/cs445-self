@@ -1,0 +1,298 @@
+% The declaration of what kind of document this is.
+% This isn't really an article, but the "article" document class
+% will work ok for our present purpose
+\documentclass{article}
+
+% By default articles have pretty big margins, so I usually
+% change them
+\setlength{\textheight}{9in}
+\topmargin -.5in
+\oddsidemargin .25in
+\evensidemargin .25in
+\textwidth 6in
+
+% In a lot of LaTeX documents, we'd put a lot of stuff
+% here about the author, pagestyle, bibliography style,
+% included packages, newly defined commands...
+% We're going to define only a few things
+\newcommand\old{_{\mbox{\scriptsize old}}}
+\newcommand\nw{_{\mbox{\scriptsize new}}}
+
+\usepackage{amssymb}
+\usepackage{minted}
+\usepackage{amsthm}
+\usepackage{enumerate}
+
+\newtheorem*{invar}{Invariant}
+\newtheorem*{corclm}{Correctness Claim}
+
+% the "document" proper starts here
+\begin{document}
+
+% The article document class has its own way of formatting
+% a title and other top matter, but we'll make our
+% own opening:
+
+\begin{center}
+\textbf{Examples from class} \\
+\today
+\end{center}
+
+% The paragraph command supresses indentation and bolds
+% its parameter
+
+\paragraph{Ex 2.3-3.}
+We prove that when $n$   % the $ starts and ends "in-text math mode"
+is an exact power of 2, then the
+solution to the recurrence
+
+% the \[ and \] delimit "display-style math mode", for bigger formulas
+% not appearing within the text of a paragraph. This next example
+% is a bit sophisticated for a starting-out example, but you
+% may be able to figure some of it out.
+
+\[
+T(n) = 
+\left\{     % make a big curly brace
+\begin{array}{ll}      % begin an "array" (tabular arrangement) with two
+                                   % columns, each alligned left 
+% & separates columns within a row , \\ means end of row
+2 & \mbox{if $n=2$} \\      % \mbox puts regular text within math mode
+2 T(\frac{n}{2}) + n & \mbox{if $n = 2^k$, for $k > 2$}
+\end{array}
+\right.      % this fills in for a closing curly brace
+\]
+
+% The quote environment changes the tabbing, like if you were to
+% make a long citation in a research paper. I use it for making
+% proofs, although there also exists a proof environment.
+
+\begin{quote}
+\textbf{Proof.}  % \textbf makes bold ("bf" = "bold face")
+By induction on $k$
+
+Suppose $k = 1$, and so $n = 2$. 
+Then $T(n) = 2 = 2 \cdot 1 = 2 \cdot \lg 2$.
+
+Next, suppose that for some $k \geq 1$  and $n = 2^k$, 
+$T(n) = n \lg n$.
+Then 
+
+\[
+% another array, but this one has three columns, lined up right, center, left
+\begin{array}{rcl}
+T(2n) &=& 2 T(\frac{2n}{2}) + 2n \\ \\
+&=& 2 T(n) + 2n \\ \\
+&=& 2 n \lg n + 2n \\ \\
+&=& 2 n (\lg n + 1) \\ \\
+&=& 2 n \lg 2n. \ \  \Box     % I'm using \Box as an end-of-proof marker
+\end{array}
+\]
+\end{quote}
+
+
+\paragraph{2.3-7 (complete).}
+Code solution:
+
+% The minted environment is one option for formatting
+% code, and it requires compling the LaTeX file with
+% the flag --shell-escape, which allows the LaTeX command
+% to execute another program. In this case, minted uses
+% a program called Pygments, which you would need to have
+% installed. A simpler approach would be to use the verbatim
+% environment, but it doesn't look as nice. There are other options
+% as well.
+\begin{minted}{python}
+# Find a pair in a set that sums to a given number, if any.
+# s - the sequence we're searching
+# x - the sum we want to find two addends of
+# returns a tuple with the values in the set that sums to x
+def findPairSum(s, x):
+    s.sort()
+    # i and j are the inclusive endpoints of the range we're searching
+    i = 0
+    j = len(s) - 1
+    while i <= j and s[i] + s[j] != x :
+        if s[i] + s[j] < x :
+            i += 1
+        else :
+            assert s[i] + s[j] > x
+            j -= 1
+    if i <= j :
+        return (s[i], s[j])
+    else :
+        return None
+\end{minted}
+
+\begin{invar}[Loop of \texttt{findPairSum}]
+After $k \in \mathbb{W}$ iterations,
+
+\begin{enumerate}[(a)]
+  \item $\forall \  a \in [0, i), s[a] + s[j] < x$
+  \item $\forall \ b \in (j, n), s[i] + s[b] > x$
+  \item $j-i = n - k - 1$
+\end{enumerate}
+
+\end{invar}
+
+\begin{corclm}[\texttt{findPairSum}]
+The method \texttt{findPairSum} returns two values
+in the given sequence that sum to $x$, if any exist.
+\end{corclm}
+
+\begin{quote}
+\textbf{Proof.}
+By induction on $k$, the number of iterations.
+
+\textbf{Initialization.}
+Suppose $k = 0$ (before the loop starts).
+$i = 0$ and $j = n-1$.
+The two ranges $[0, i)$ and $(j, n)$ are empty, and so 
+clauses (a) and (b) are vacuously true.
+Moreover, $j - i = n - 1 - 0 = n - 0 - 1 = n - k - 1$.
+
+\textbf{Maintenance.}
+Suppose the invariant is true after $k$ iterations, for
+some $k \geq 0$.
+Suppose a $k + 1$st iteration occurs.
+By the guard (which must have been true),
+either $S[i] + S[j] < x$ or $S[i] + S[j] > x$.
+
+Suppose $S[i] + S[j] < x$.
+By the inductive hypothesis, for all $a \in [0, i)$,
+$S[a] + S[j] < x$.
+Hence for all $a \in [0, i+1)$, $S[a] + S[j] < x$.
+The invariant is maintained after $i$ is incremented.
+
+The situation is similar if $S[i] + S[j] > x$.
+
+Additionally, either $i$ is incremented or $j$ is decremented.
+In either case $j\nw - i\nw = (j\old - i\old) - 1 = n - k - 1 - 1 = 
+n - (k+1) - 1$.
+
+Hence the invariant holds after $k + 1$ iterations.
+
+\textbf{Termination.}
+After $n$ iterations, $j - i = -1$ so $i > j$.
+Hence the loop will terminate after at most $n$ iterations.
+
+After the loop terminates, either $i > j$ or $S[i] + S[j] = x$.
+
+Suppose $i > j$. 
+Then, by the loop invariant, no elements exist that sum to $x$,
+and the algorithm correctly returns \texttt{None}.
+
+On the other hand, suppose $S[i] + S[j] = x$.
+Then the algorithm correctly returns $S[i]$ and $S[j]$.
+$\Box$
+\end{quote}
+
+\noindent
+For the analysis, here' s the code reproduce with anotations.
+
+\begin{minted}[texcomments=true]{python}
+def findPairSum(s, x):
+    s.sort()     # $c_0 + c_1 n + c_2 n \lg n$
+
+    i = 0
+    j = len(s) - 1
+    while i <= j and s[i] + s[j] != x :   #$c_3 (n+1)$
+        if s[i] + s[j] < x :    #$c_4 n$
+            i += 1
+        else :
+            assert s[i] + s[j] > x
+            j -= 1
+    if i <= j :        #$c_5$
+        return (s[i], s[j])
+    else :
+        return None
+\end{minted}
+
+\noindent
+Renaming constants, the worst-case running time is
+in the form
+
+\[
+T(n) = d_0 + d_1 n + d_2 n \lg n
+\]
+
+\noindent
+Which is $\Theta(n \lg n)$.
+
+% I would like the solution to the next problem to start on a new page.
+% The \pagebreak command will break a page, but then LaTeX
+% will stretch out the prematurely-cut page wierdly. So I
+% precede the \pagebreak commend with the \vfill command, which
+% says to fill the rest of the current page with whitespace.
+% (To LaTeX purists like Dr Lovett, \pagebreak is an abomination---it
+% goes against the whole philosophy of LaTeX! I, however, sin boldly.
+% (In LaTeX, that is.) )
+
+\vfill   
+\pagebreak
+
+\paragraph{2-3.c.}
+Be careful. What is the induction variable?
+Not $i$. Look at the proposed invariant again.
+The induction variable is actually the number of iterations 
+which is $n-i$.
+That will make the math a little messier.
+
+\begin{quote}
+\textbf{Proof.} By induction on the number of iterations.
+
+\textbf{Init.}
+After 0 iterations, $y = 0$, $i = n$ by assignment.
+So
+
+\[
+\sum_{k=0}^{n-(i + 1)} a_{k + i + 1} = \sum_{k=0}^{-1} a_{k + i + 1} x^k = 0
+= y 
+\]
+
+\textbf{Maint.} Now, suppose this holds true after $N$ iterations, that is
+
+\[
+y\old = \sum_{k=0}^{n-(i\old + 1)} a_{k + i\old + 1} x^k
+\]
+
+where $y\old$ and $i\old$ are $y$ and $i$ after $N$ iterations.
+Likewise, let $y\nw$ and $i\nw$ be the values after
+$N + 1$ iterations.
+
+By assignment $i\nw = i\old - 1$.
+Then
+
+% The array below follows a typical pattern (for me, at least)
+% with four columns: 
+% - the left hand side, right aligned (in this case, used only in the top row)
+% - the equal sign, centered
+% - the right hand side, left aligned
+% - the justifications, as necessary, in mboxes, left aligned
+% You'll also notice I double the line breaks (\\ \\), which 
+% provides a little more white space for something like this
+% which is heavily cluttered
+
+\[
+\begin{array}{rcll}
+y\nw &=& a_{i\old} + x \cdot y\old & \mbox{by assignment} \\ \\
+&=& a_{i\old} + x\cdot 
+\sum_{k=0}^{n - (i\old + 1)} a_{k + i\old + 1} x^k & \\ \\
+&=& a_{i\nw - 1} + x\cdot 
+\sum_{k=0}^{n - (i\nw + 2)} a_{k + i\nw} x^k & \mbox{by substitution} \\ \\
+&=& a_{i\nw - 1} +  
+\sum_{k=0}^{n - (i\nw + 2)} a_{k + i\nw} x^{k+1} & \mbox{by distribution} \\ \\
+&=& a_{i\nw - 1} + 
+\sum_{k=1}^{n - (i\nw  + 1)} a_{k + i\nw + 1} x^{k} 
+& \mbox{by change of variables} \\ \\
+&=& a_{0 + i\nw - 1} x^0 + 
+\sum_{k=1}^{n - (i\nw + 1)} a_{k + i\nw + 1} x^{k} 
+& \\ \\
+&=& \sum_{k = 0}^{n - (i\nw + 1)} a_{k + i\nw + 1} x^k & \Box
+\end{array}
+\]
+
+\end{quote}
+
+
+\end{document}
